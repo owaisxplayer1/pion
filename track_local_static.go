@@ -277,7 +277,7 @@ func (s *TrackLocalStaticSample) Unbind(t TrackLocalContext) error {
 func (s *TrackLocalStaticSample) WriteSample(sample media.Sample) error {
 	s.rtpTrack.mu.RLock()
 	p := s.packetizer
-	clockRate := s.clockRate
+	// clockRate := s.clockRate
 	s.rtpTrack.mu.RUnlock()
 
 	if p == nil {
@@ -289,11 +289,11 @@ func (s *TrackLocalStaticSample) WriteSample(sample media.Sample) error {
 		s.sequencer.NextSequenceNumber()
 	}
 
-	samples := uint32(sample.Duration.Seconds() * clockRate)
+	// samples := uint32(sample.Duration.Seconds() * clockRate)
 	if sample.PrevDroppedPackets > 0 {
-		p.SkipSamples(samples * uint32(sample.PrevDroppedPackets))
+		p.SkipSamples(sample.PacketTimestamp * uint32(sample.PrevDroppedPackets))
 	}
-	packets := p.Packetize(sample.Data, samples)
+	packets := p.Packetize(sample.Data, sample.PacketTimestamp)
 
 	writeErrs := []error{}
 	for _, p := range packets {
